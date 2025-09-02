@@ -1,2 +1,1 @@
-from qdrant_client import QdrantClient
-client = QdrantClient(':memory:')
+def create_collection(name, dim): pass
