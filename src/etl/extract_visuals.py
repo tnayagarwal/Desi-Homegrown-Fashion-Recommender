@@ -1,2 +1,1 @@
-import torch
-from transformers import AutoImageProcessor
+def process_image(): pass
