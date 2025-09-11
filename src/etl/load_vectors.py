@@ -1,0 +1,1 @@
+from src.database.qdrant_client import client
