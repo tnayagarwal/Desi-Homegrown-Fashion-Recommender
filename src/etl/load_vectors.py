@@ -1,1 +1,1 @@
-from src.database.qdrant_client import client
+def upsert_vectors(points): pass
