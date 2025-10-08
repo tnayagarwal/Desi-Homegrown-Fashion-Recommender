@@ -1,0 +1,1 @@
+def find_similar(vector): pass
