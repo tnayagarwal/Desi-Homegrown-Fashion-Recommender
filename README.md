@@ -1,2 +1,3 @@
-# Multimodal Fashion Recommender
-Using Vector DBs
+## Pipeline
+- Computer Vision
+- Vector Mapping
