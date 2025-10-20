@@ -1,3 +1,5 @@
 torch
 huggingface_hub
 qdrant-client
+fastapi
+uvicorn
