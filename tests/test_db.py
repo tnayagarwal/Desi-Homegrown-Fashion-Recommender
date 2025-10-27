@@ -1,0 +1,1 @@
+def test_qdrant_connection(): assert True
