@@ -1,3 +1,1 @@
-## Pipeline
-- Computer Vision
-- Vector Mapping
+Finalized Enterprise Architecture.
