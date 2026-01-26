@@ -1,57 +1,84 @@
 """
-Fashion Recommender REST API
-==============================
-FastAPI server exposing recommendation endpoints backed by Qdrant vector search.
+Fashion Recommender REST API — v1.2.0
+=======================================
+FastAPI service for multimodal fashion recommendations.
+Full OpenAPI 3.0 schema available at /docs and /openapi.json.
 """
-
 import logging
-from typing import List
-from fastapi import FastAPI, HTTPException, UploadFile, File
-from pydantic import BaseModel
+from typing import List, Optional
+from fastapi import FastAPI, HTTPException, Query
+from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
-app = FastAPI(title="Fashion Recommender API", version="1.0.0")
+
+app = FastAPI(
+    title="Fashion Recommender API",
+    description=(
+        "Multimodal recommendation engine using Qdrant vector search. "
+        "Submit a 512-dim ViT-B/32 embedding to retrieve visually similar "
+        "fashion items from the indexed catalog."
+    ),
+    version="1.2.0",
+    contact={"name": "Tanay Agarwal", "url": "https://github.com/tnayagarwal"},
+    license_info={"name": "MIT"},
+)
 
 
 class RecommendationRequest(BaseModel):
-    query_vector: List[float]
-    top_k: int = 10
+    query_vector: List[float] = Field(
+        ..., description="512-dimensional ViT-B/32 visual embedding.", example=[0.01] * 10
+    )
+    top_k: int = Field(default=10, ge=1, le=100, description="Number of results.", example=10)
+    collection: str = Field(default="fashion_catalog", description="Qdrant collection name.")
+
+
+class RecommendationItem(BaseModel):
+    id: int = Field(..., description="Catalog item ID.")
+    score: float = Field(..., description="Cosine similarity score (0-1).")
+    payload: dict = Field(default={}, description="Item metadata.")
 
 
 class RecommendationResponse(BaseModel):
-    results: List[dict]
+    results: List[RecommendationItem]
+    total: int
 
 
-@app.get("/health")
+@app.get("/health", tags=["System"])
 async def health_check():
-    """Liveness probe for load balancer and CI pipelines."""
-    return {"status": "ok"}
+    """Liveness probe for CI/CD pipelines and load balancers."""
+    return {"status": "ok", "service": "fashion-recommender", "version": "1.2.0"}
 
 
-@app.post("/recommend", response_model=RecommendationResponse)
+@app.get("/collections", tags=["Catalog"])
+async def list_collections():
+    """List all available Qdrant vector collections."""
+    try:
+        from src.database.qdrant_client import get_client
+        client = get_client()
+        collections = [c.name for c in client.get_collections().collections]
+        return {"collections": collections, "count": len(collections)}
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"Qdrant unavailable: {e}")
+
+
+@app.post("/recommend", response_model=RecommendationResponse, tags=["Recommendations"])
 async def recommend(request: RecommendationRequest):
     """
-    Find visually similar fashion items given a query embedding.
+    Find the most visually similar fashion items for a query embedding.
 
-    Args:
-        request: RecommendationRequest containing embedding and top_k.
-
-    Returns:
-        Top-k similar items from the catalog.
+    Submit a 512-dim ViT-B/32 embedding to get back the top-k nearest
+    catalog items ranked by cosine similarity.
     """
-    if not request.query_vector:
-        raise HTTPException(status_code=400, detail="query_vector must not be empty.")
-    if request.top_k < 1 or request.top_k > 100:
-        raise HTTPException(status_code=400, detail="top_k must be between 1 and 100.")
-
-    # Lazy import to avoid startup cost if Qdrant is not configured
     from src.database.qdrant_client import get_client, search_similar
     try:
         client = get_client()
-        hits = search_similar(client, request.query_vector, top_k=request.top_k)
-        return RecommendationResponse(results=[
-            {"id": h.id, "score": h.score, "payload": h.payload} for h in hits
-        ])
+        hits = search_similar(client, request.query_vector,
+                              top_k=request.top_k, collection=request.collection)
+        items = [RecommendationItem(id=h.id, score=round(h.score, 4),
+                                   payload=h.payload or {}) for h in hits]
+        return RecommendationResponse(results=items, total=len(items))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         logger.error("Recommendation error: %s", e)
-        raise HTTPException(status_code=500, detail="Internal recommendation error.")
+        raise HTTPException(status_code=500, detail="Internal error.")
