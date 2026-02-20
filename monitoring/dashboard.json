@@ -1,0 +1,35 @@
+{
+  "title": "Pipeline Observability",
+  "uid": "pipeline-obs-v1",
+  "schemaVersion": 36,
+  "tags": ["data-engineering", "streaming"],
+  "panels": [
+    {
+      "id": 1, "title": "Request Rate (req/min)", "type": "stat",
+      "description": "Total API/pipeline requests processed per minute.",
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0}
+    },
+    {
+      "id": 2, "title": "Error Rate (%)", "type": "gauge",
+      "description": "Fraction of requests resulting in errors.",
+      "gridPos": {"h": 4, "w": 6, "x": 6, "y": 0},
+      "options": {
+        "thresholds": {"steps": [
+          {"color": "green", "value": 0},
+          {"color": "yellow", "value": 1},
+          {"color": "red", "value": 5}
+        ]}
+      }
+    },
+    {
+      "id": 3, "title": "P50 Latency (ms)", "type": "timeseries",
+      "description": "Median request processing latency.",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4}
+    },
+    {
+      "id": 4, "title": "P99 Latency (ms)", "type": "timeseries",
+      "description": "99th-percentile latency — worst-case user experience.",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4}
+    }
+  ]
+}
