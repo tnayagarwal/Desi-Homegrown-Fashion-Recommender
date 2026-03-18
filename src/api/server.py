@@ -82,3 +82,5 @@ async def recommend(request: RecommendationRequest):
     except Exception as e:
         logger.error("Recommendation error: %s", e)
         raise HTTPException(status_code=500, detail="Internal error.")
+
+# Developer comment #1 for optimization and readability check.
