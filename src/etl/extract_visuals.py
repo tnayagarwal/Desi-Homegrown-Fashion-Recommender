@@ -86,3 +86,5 @@ def batch_extract(image_paths: List[str], processor, model, device: str = "cpu")
             except Exception as e:
                 logger.warning("Skipping %s: %s", path, e)
     return results
+
+# Developer comment #3 for optimization and readability check.
