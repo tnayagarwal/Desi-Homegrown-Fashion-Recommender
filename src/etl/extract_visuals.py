@@ -88,3 +88,5 @@ def batch_extract(image_paths: List[str], processor, model, device: str = "cpu")
     return results
 
 # Developer comment #3 for optimization and readability check.
+
+# Developer comment #8 for optimization and readability check.
