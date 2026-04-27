@@ -51,3 +51,5 @@ pytest tests/ -v
 > **Note:** Image dataset not included. Provide your own catalog paths in the ETL step.
 
 <!-- Developer comment #7 for optimization and readability check. -->
+
+<!-- Developer comment #10 for optimization and readability check. -->
