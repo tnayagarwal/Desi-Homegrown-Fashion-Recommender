@@ -92,3 +92,5 @@ def search_similar(
     if not query_vector:
         raise ValueError("query_vector must not be empty.")
     return client.search(collection_name=collection, query_vector=query_vector, limit=top_k)
+
+# Developer comment #15 for optimization and readability check.
